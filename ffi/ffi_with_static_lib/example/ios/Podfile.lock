@@ -1,0 +1,22 @@
+PODS:
+  - Flutter (1.0.0)
+  - test_ffi (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - test_ffi (from `.symlinks/plugins/test_ffi/ios`)
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  test_ffi:
+    :path: ".symlinks/plugins/test_ffi/ios"
+
+SPEC CHECKSUMS:
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  test_ffi: 75d72ab28987e9b95a6e84bc4c6d96738a926397
+
+PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
+
+COCOAPODS: 1.15.2
