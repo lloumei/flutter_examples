@@ -29,7 +29,9 @@ A new Flutter project.
 #   s.pod_target_xcconfig = { "OTHER_LDFLAGS" => "-force_load $(PODS_TARGET_SRCROOT)/Frameworks/libtest_static.a" }
 
   s.public_header_files = 'Classes/**/*.h'
-  s.vendored_frameworks = 'Frameworks/libtest_static.xcframework'
+  s.vendored_frameworks = [
+    'Frameworks/libtest_static.xcframework'
+  ]
 
   s.swift_version = '5.0'
 end

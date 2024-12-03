@@ -1,92 +1,227 @@
-# test_ffi
+## 编译测试静态库和动态库
 
-A new Flutter project.
+正式开始测试前，我们先要准备测试所需的静态库和动态库文件。在这里，我准备了两个简单的测试C语言工程：
 
-## Getting Started
+* test_static
+* test_shared
 
-This project is a starting point for a Flutter
-[FFI plugin](https://flutter.dev/to/ffi-package),
-a specialized package that includes native code directly invoked with Dart FFI.
+测试工程中仅包含一个c文件和一个头文件，以及两个编译脚本，分别用来构建Android平台和IOS平台的库文件。
 
-## Project structure
+### 准备编译环境
 
-This template uses the following structure:
+由于需要同时测试Android和IOS两个平台，我使用了苹果电脑来作为开发机器，电脑CPU为M2。
 
-* `src`: Contains the native source code, and a CmakeFile.txt file for building
-  that source code into a dynamic library.
+电脑需要安装好Xcode，以及Android开发相关的SDK和NDK，在这里NDK选择了r19c版本。
 
-* `lib`: Contains the Dart code that defines the API of the plugin, and which
-  calls into the native code using `dart:ffi`.
+### 开始编译
 
-* platform folders (`android`, `ios`, `windows`, etc.): Contains the build files
-  for building and bundling the native code library with the platform application.
+编译Android的测试静态库：
 
-## Building and bundling native code
-
-The `pubspec.yaml` specifies FFI plugins as follows:
-
-```yaml
-  plugin:
-    platforms:
-      some_platform:
-        ffiPlugin: true
+```bash
+cd test_static
+export ANDROID_NDK=/your/android/ndk/path
+export NDK_PLATFORM=darwin-x86_64
+./build_android.sh  
 ```
 
-This configuration invokes the native build for the various target platforms
-and bundles the binaries in Flutter applications using these FFI plugins.
+编译Android的测试动态库：
 
-This can be combined with dartPluginClass, such as when FFI is used for the
-implementation of one platform in a federated plugin:
-
-```yaml
-  plugin:
-    implements: some_other_plugin
-    platforms:
-      some_platform:
-        dartPluginClass: SomeClass
-        ffiPlugin: true
+```bash
+cd test_shared
+export ANDROID_NDK=/your/android/ndk/path
+export NDK_PLATFORM=darwin-x86_64
+./build_android.sh
 ```
 
-A plugin can have both FFI and method channels:
+编译IOS的测试静态库：
 
-```yaml
-  plugin:
-    platforms:
-      some_platform:
-        pluginClass: SomeName
-        ffiPlugin: true
+```bash
+cd test_static
+./build_ios.sh  
 ```
 
-The native build systems that are invoked by FFI (and method channel) plugins are:
+## 工程引用库文件
 
-* For Android: Gradle, which invokes the Android NDK for native builds.
-  * See the documentation in android/build.gradle.
-* For iOS and MacOS: Xcode, via CocoaPods.
-  * See the documentation in ios/test_ffi.podspec.
-  * See the documentation in macos/test_ffi.podspec.
-* For Linux and Windows: CMake.
-  * See the documentation in linux/CMakeLists.txt.
-  * See the documentation in windows/CMakeLists.txt.
+编译好测试静态库和动态库后，需要将库文件引入到工程中。
 
-## Binding to native code
+### Android工程引用
 
-To use the native code, bindings in Dart are needed.
-To avoid writing these by hand, they are generated from the header file
-(`src/test_ffi.h`) by `package:ffigen`.
-Regenerate the bindings by running `dart run ffigen --config ffigen.yaml`.
+将 test_static 和 test_shared 文件夹下的 output/android/jniLibs 文件夹合并复制到 android/src/main/jniLibs ，文件结构如下：
 
-## Invoking native code
+```
+jniLibs
+├── arm64-v8a
+│   ├── include
+│   │   ├── test_shared.h
+│   │   └── test_static.h
+│   ├── libtest_shared.so
+│   └── libtest_static.a
+├── armeabi-v7a
+│   ├── include
+│   │   ├── test_shared.h
+│   │   └── test_static.h
+│   ├── libtest_shared.so
+│   └── libtest_static.a
+├── x86
+│   ├── include
+│   │   ├── test_shared.h
+│   │   └── test_static.h
+│   ├── libtest_shared.so
+│   └── libtest_static.a
+└── x86_64
+    ├── include
+    │   ├── test_shared.h
+    │   └── test_static.h
+    ├── libtest_shared.so
+    └── libtest_static.a
+```
 
-Very short-running native functions can be directly invoked from any isolate.
-For example, see `sum` in `lib/test_ffi.dart`.
+回到根目录下的 src 文件夹，编辑 CMakeLists.txt 文件，添加库文件依赖：
 
-Longer-running functions should be invoked on a helper isolate to avoid
-dropping frames in Flutter applications.
-For example, see `sumAsync` in `lib/test_ffi.dart`.
+```cmake
 
-## Flutter help
+include_directories(${CMAKE_SOURCE_DIR}/../android/src/main/jniLibs/${ANDROID_ABI}/include)
 
-For help getting started with Flutter, view our
-[online documentation](https://docs.flutter.dev), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+add_library(libtest_shared SHARED IMPORTED)
+set_target_properties(libtest_shared PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/../android/src/main/jniLibs/${ANDROID_ABI}/libtest_shared.so)
 
+add_library(libtest_static STATIC IMPORTED)
+set_target_properties(libtest_static PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/../android/src/main/jniLibs/${ANDROID_ABI}/libtest_static.a)
+
+target_link_libraries(
+  test_ffi
+  ${LIB-LOG}
+  libtest_shared
+  libtest_static
+)
+
+```
+
+这个 CMakeLists.txt 只有Android工程使用到，所以不做区分平台的操作。
+
+### IOS工程引用
+
+将 test_static 文件夹下的 output/ios/libtest_static.xcframework 复制到 ios/Frameworks/libtest_static.xcframework ，如果 Frameworks 文件夹不存在就创建一个。
+
+编辑 ios 文件夹下的 .podspec 文件：
+
+```podspec
+s.vendored_frameworks = [
+'Frameworks/libtest_static.xcframework'
+]
+```
+
+## 使用库文件方法
+
+创建ffi工程的时候，src文件夹下默认自带一个c文件和头文件，我们以这两个文件为入口，添加自己的方法实现。
+
+修改头文件，添加方法声明：
+
+```c
+FFI_PLUGIN_EXPORT const char * platform();
+
+FFI_PLUGIN_EXPORT int min(int a, int b);
+
+FFI_PLUGIN_EXPORT int max(int a, int b);
+```
+
+然后修改c文件，添加方法的实现：
+
+```c
+#include "test_static.h"
+
+#if defined(ANDROID) || defined(_ANDROID_)
+#include "test_shared.h"
+#endif
+
+FFI_PLUGIN_EXPORT const char * platform() {
+#if defined(ANDROID) || defined(_ANDROID_)
+  return "ANDROID";
+#elif defined(__APPLE__) || defined(TARGET_OS_IPHONE) || defined(TARGET_IPHONE_SIMULATOR)
+  return "IOS";
+#else
+  return "OTHER";
+#endif
+}
+
+FFI_PLUGIN_EXPORT int min(int a, int b) {
+#if defined(ANDROID) || defined(_ANDROID_)
+  return test_shared_min(a, b);
+#else
+  return -1;
+#endif
+}
+
+FFI_PLUGIN_EXPORT int max(int a, int b) {
+  return test_static_max(a, b);
+}
+
+```
+
+由于IOS不支持动态库引用，所以上面的c文件需要使用宏判断平台来决定是否使用测试动态库。
+
+### 使用ffigen生成Dart代码
+
+在Mac中使用ffigen生成Dart代码时会有很多警告，导致代码生成失败：
+
+```
+warning: pointer is missing a nullability type specifier (_Nonnull, _Nullable, or _Null_unspecified) [Nullability Issue]
+```
+
+所以我们需要修改一下工程根目录下的 ffigen.yaml 文件，目的是禁用上面的警告：
+
+```yaml
+compiler-opts:
+  - "-Wno-nullability-completeness"   # 在苹果系统编译会报错：https://juejin.cn/post/6934524023342628877
+```
+
+然后用以下命令来生成代码：
+
+```bash
+dart run ffigen --config ffigen.yaml
+```
+
+### 在Dart中使用原生库功能
+
+最后我们在Dart中就可以使用测试静态库和动态库的方法了：
+
+```dart
+import 'dart:async';
+import 'dart:ffi';
+import 'dart:io';
+import 'dart:isolate';
+
+import 'package:ffi/ffi.dart';
+
+import 'test_ffi_bindings_generated.dart';
+
+const String _libName = 'test_ffi';
+
+/// The dynamic library in which the symbols for [TestFfiBindings] can be found.
+final DynamicLibrary _dylib = () {
+  if (Platform.isMacOS || Platform.isIOS) {
+    return DynamicLibrary.open('$_libName.framework/$_libName');
+  }
+  if (Platform.isAndroid || Platform.isLinux) {
+    // DynamicLibrary.open('libtest_shared.so');
+    return DynamicLibrary.open('lib$_libName.so');
+  }
+  if (Platform.isWindows) {
+    return DynamicLibrary.open('$_libName.dll');
+  }
+  throw UnsupportedError('Unknown platform: ${Platform.operatingSystem}');
+}();
+
+/// The bindings to the native functions in [_dylib].
+final TestFfiBindings _bindings = TestFfiBindings(_dylib);
+
+String platform() {
+  Pointer<Char> p = _bindings.platform();
+  return p.cast<Utf8>().toDartString();
+}
+
+int min(int a, int b) => _bindings.min(a, b);
+
+int max(int a, int b) => _bindings.max(a, b);
+
+```

@@ -18,7 +18,9 @@ class _MyAppState extends State<MyApp> {
   late int sumResult;
   late Future<int> sumAsyncResult;
 
-  late int lenOfMsg;
+  late String platformResult;
+  late int minResult;
+  late int maxResult;
 
   @override
   void initState() {
@@ -26,7 +28,9 @@ class _MyAppState extends State<MyApp> {
     sumResult = test_ffi.sum(1, 2);
     sumAsyncResult = test_ffi.sumAsync(3, 4);
 
-    lenOfMsg = test_ffi.test_static_hello("Hello World!");
+    platformResult = test_ffi.platform();
+    minResult = test_ffi.min(99, 101);
+    maxResult = test_ffi.max(99, 101);
   }
 
   @override
@@ -51,8 +55,7 @@ class _MyAppState extends State<MyApp> {
                 ),
                 spacerSmall,
                 Text(
-                  'lenOfMsg = $lenOfMsg',
-                  // 'sum = $sumResult',
+                  'sum = $sumResult',
                   style: textStyle,
                   textAlign: TextAlign.center,
                 ),
@@ -68,6 +71,31 @@ class _MyAppState extends State<MyApp> {
                       textAlign: TextAlign.center,
                     );
                   },
+                ),
+
+                // 平台
+                spacerSmall,
+                Text(
+                  'platform = $platformResult',
+                  style: textStyle,
+                  textAlign: TextAlign.center,
+                ),
+
+                // 调用动态库结果
+                // IOS不支持动态库，所以在IOS设备上运行返回-1
+                spacerSmall,
+                Text(
+                  'min = $minResult',
+                  style: textStyle,
+                  textAlign: TextAlign.center,
+                ),
+
+                // 调用静态库结果
+                spacerSmall,
+                Text(
+                  'max = $maxResult',
+                  style: textStyle,
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),

@@ -67,17 +67,40 @@ class TestFfiBindings {
   late final _sum_long_running =
       _sum_long_runningPtr.asFunction<int Function(int, int)>();
 
-  int test_hello(
-    ffi.Pointer<ffi.Char> msg,
+  ffi.Pointer<ffi.Char> platform() {
+    return _platform();
+  }
+
+  late final _platformPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>('platform');
+  late final _platform =
+      _platformPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  int min(
+    int a,
+    int b,
   ) {
-    return _test_hello(
-      msg,
+    return _min(
+      a,
+      b,
     );
   }
 
-  late final _test_helloPtr =
-      _lookup<ffi.NativeFunction<ffi.Size Function(ffi.Pointer<ffi.Char>)>>(
-          'test_hello');
-  late final _test_hello =
-      _test_helloPtr.asFunction<int Function(ffi.Pointer<ffi.Char>)>();
+  late final _minPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function(ffi.Int, ffi.Int)>>('min');
+  late final _min = _minPtr.asFunction<int Function(int, int)>();
+
+  int max(
+    int a,
+    int b,
+  ) {
+    return _max(
+      a,
+      b,
+    );
+  }
+
+  late final _maxPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function(ffi.Int, ffi.Int)>>('max');
+  late final _max = _maxPtr.asFunction<int Function(int, int)>();
 }

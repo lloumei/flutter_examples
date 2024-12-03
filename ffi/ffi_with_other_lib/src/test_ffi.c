@@ -1,6 +1,10 @@
 #include "test_ffi.h"
 #include "test_static.h"
 
+#if defined(ANDROID) || defined(_ANDROID_)
+#include "test_shared.h"
+#endif
+
 // A very short-lived native function.
 //
 // For very short-lived functions, it is fine to call them on the main isolate.
@@ -23,6 +27,24 @@ FFI_PLUGIN_EXPORT int sum_long_running(int a, int b) {
   return a + b;
 }
 
-FFI_PLUGIN_EXPORT size_t test_hello(const char *msg) {
-    return test_static_hello(msg);
+FFI_PLUGIN_EXPORT const char * platform() {
+#if defined(ANDROID) || defined(_ANDROID_)
+  return "ANDROID";
+#elif defined(__APPLE__) || defined(TARGET_OS_IPHONE) || defined(TARGET_IPHONE_SIMULATOR)
+  return "IOS";
+#else
+  return "OTHER";
+#endif
+}
+
+FFI_PLUGIN_EXPORT int min(int a, int b) {
+#if defined(ANDROID) || defined(_ANDROID_)
+  return test_shared_min(a, b);
+#else
+  return -1;
+#endif
+}
+
+FFI_PLUGIN_EXPORT int max(int a, int b) {
+  return test_static_max(a, b);
 }

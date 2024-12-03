@@ -4,10 +4,14 @@
 #include <string.h>
 
 int test_static_version() {
-    return 1;
+    return 101;
 }
 
-size_t test_static_hello(const char *msg) {
-    printf("test_static_hello : msg=%s\n", msg);
-    return strlen(msg);
+int test_static_max(int a, int b) {
+    printf("test_static_max : a=%d, b=%d\n", a, b);
+    if (a >= b) {
+        return a;
+    } else {
+        return b;
+    }
 }

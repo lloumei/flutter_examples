@@ -15,6 +15,7 @@
 #define FFI_PLUGIN_EXPORT
 #endif
 
+
 // A very short-lived native function.
 //
 // For very short-lived functions, it is fine to call them on the main isolate.
@@ -29,4 +30,8 @@ FFI_PLUGIN_EXPORT int sum(int a, int b);
 // Instead, call these native functions on a separate isolate.
 FFI_PLUGIN_EXPORT int sum_long_running(int a, int b);
 
-FFI_PLUGIN_EXPORT size_t test_hello(const char *msg);
+FFI_PLUGIN_EXPORT const char * platform();
+
+FFI_PLUGIN_EXPORT int min(int a, int b);
+
+FFI_PLUGIN_EXPORT int max(int a, int b);

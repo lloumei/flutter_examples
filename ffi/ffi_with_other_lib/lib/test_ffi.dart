@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
@@ -43,6 +42,7 @@ final DynamicLibrary _dylib = () {
     return DynamicLibrary.open('$_libName.framework/$_libName');
   }
   if (Platform.isAndroid || Platform.isLinux) {
+    // DynamicLibrary.open('libtest_shared.so');
     return DynamicLibrary.open('lib$_libName.so');
   }
   if (Platform.isWindows) {
@@ -53,7 +53,6 @@ final DynamicLibrary _dylib = () {
 
 /// The bindings to the native functions in [_dylib].
 final TestFfiBindings _bindings = TestFfiBindings(_dylib);
-
 
 /// A request to compute `sum`.
 ///
@@ -132,12 +131,11 @@ Future<SendPort> _helperIsolateSendPort = () async {
   return completer.future;
 }();
 
-int test_static_hello(String msg) {
-  const Allocator allocator = malloc;
-  final msgPointer = msg.toNativeUtf8(allocator: allocator);
-  try {
-    return _bindings.test_hello(msgPointer.cast());
-  } finally {
-    allocator.free(msgPointer);
-  }
+String platform() {
+  Pointer<Char> p = _bindings.platform();
+  return p.cast<Utf8>().toDartString();
 }
+
+int min(int a, int b) => _bindings.min(a, b);
+
+int max(int a, int b) => _bindings.max(a, b);
