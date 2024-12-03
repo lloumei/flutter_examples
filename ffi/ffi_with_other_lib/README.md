@@ -225,3 +225,12 @@ int min(int a, int b) => _bindings.min(a, b);
 int max(int a, int b) => _bindings.max(a, b);
 
 ```
+
+## 参考
+
+* [How to use GoLang in Flutter Application - Golang FFI](https://dev.to/leehack/how-to-use-golang-in-flutter-application-golang-ffi-1950)
+* [Using FFI on Flutter Plugins to run native Rust code](https://medium.com/flutter-community/using-ffi-on-flutter-plugins-to-run-native-rust-code-d64c0f14f9c2)
+* [The Architecture Mismatch Dilemma in iOS: Solving the ‘Could Not Find Module *** for Target x86_64-apple-ios-simulator’ Issue on Apple Silicon](https://medium.com/@magdy.zamel/the-architecture-mismatch-dilemma-b72adf2db374)
+* [Using dart:ffi with a xcframework containing static binaries (iOS)](https://github.com/dart-lang/native/issues/934)
+* [Simulator ARM64 Support for Static Libraries in M1 Machines](https://forums.developer.apple.com/forums/thread/673387)
+* [Both ios-arm64-simulator and ios-x86_64-simulator represent two equivalent library definitions](https://developer.apple.com/forums/thread/666335?answerId=685927022#685927022)
